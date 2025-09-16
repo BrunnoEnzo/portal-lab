@@ -1,0 +1,72 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  # --- Serviço do Banco de Dados PostgreSQL ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: portal-lab-postgres
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: portal_lab
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # --- Serviço do Backend (Nest.js) ---
+  backend:
+    build:
+      context: ./apps/backend
+    container_name: portal-lab-backend
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./apps/backend/.env
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  # --- Serviço do Frontend (Next.js) ---
+  frontend:
+    build:
+      context: ./apps/frontend
+    container_name: portal-lab-frontend
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # --- Serviço do Nginx (Reverse Proxy) ---
+  nginx:
+    build:
+      context: ./nginx
+    container_name: portal-lab-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+  # --- Serviço do PGADMIN ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: portal-lab-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@email.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      # Acesse o pgAdmin em http://localhost:5050
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres # Garante que o pgAdmin só inicie depois do banco
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  pgadmin_data:
