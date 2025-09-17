@@ -35,6 +35,8 @@ services:
     build:
       context: ./apps/frontend
     container_name: portal-lab-frontend
+    env_file:
+      - ./apps/frontend/.env
     depends_on:
       - backend
     restart: unless-stopped

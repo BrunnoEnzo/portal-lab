@@ -5,7 +5,15 @@ import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider as EmotionCacheProvider } from '@emotion/react';
 
-export default function NextAppDirEmotionCacheProvider(props: any) {
+import type { Options as EmotionCacheOptions } from '@emotion/cache';
+
+interface EmotionCacheProviderProps {
+  options: Omit<EmotionCacheOptions, 'insertionPoint'>;
+  CacheProvider?: React.ElementType;
+  children: React.ReactNode;
+}
+
+export default function NextAppDirEmotionCacheProvider(props: EmotionCacheProviderProps) {
   const { options, CacheProvider = EmotionCacheProvider, children } = props;
 
   const [{ cache, flush }] = React.useState(() => {

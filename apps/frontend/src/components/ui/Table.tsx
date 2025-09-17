@@ -24,7 +24,7 @@ interface TableProps<T> {
   columns: ColumnDef<T>[]; // A configuração das colunas
 }
 
-export const Table = <T extends { id: any }>({ data, columns }: TableProps<T>) => {
+export const Table = <T extends { id: string | number }>({ data, columns }: TableProps<T>) => {
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
       <TableContainer component={Paper}>

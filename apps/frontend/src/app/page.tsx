@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { Box, Typography, Container } from '@mui/material';
+// apps/frontend/src/app/page.tsx
+import { Typography, Container } from '@mui/material';
 
 export default function Home() {
   return (
