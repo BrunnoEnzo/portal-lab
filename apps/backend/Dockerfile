@@ -7,6 +7,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
+# Gere o Prisma Client antes de construir o código
+RUN npx prisma generate
 # Apenas construímos o código. O Prisma Client será gerado no próximo estágio.
 RUN npm run build
 
