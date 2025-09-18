@@ -2,7 +2,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -10,19 +9,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  ADMIN
+  // Você tinha PROFESSOR e ADMINISTRATIVE, pode adicionar de volta se precisar
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  // ID como UUID
+  id        String   @id @default(uuid())
+  
   name      String
-  // A senha é opcional, pois usuários de login social não terão uma.
-  password  String?
+  email     String   @unique
+  password  String?  // Opcional para login social
+
+  // --- CAMPO QUE FALTAVA ---
+  provider  String   @default("credentials")
+
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum Role {
-  STUDENT
-  PROFESSOR
-  ADMINISTRATIVE
 }

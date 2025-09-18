@@ -1,19 +1,25 @@
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterStudentDto } from './dto/register-student.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterStudentDto } from './dto/register-student.dto';
+import { SocialLoginDto } from './dto/social-login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  registerStudent(@Body(new ValidationPipe()) dto: RegisterStudentDto) {
-    return this.authService.registerStudent(dto);
+  register(@Body() registerDto: RegisterStudentDto) {
+    return this.authService.register(registerDto);
   }
 
   @Post('login')
-  login(@Body(new ValidationPipe()) dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @Post('social-login')
+  socialLogin(@Body() socialLoginDto: SocialLoginDto) {
+    return this.authService.socialLogin(socialLoginDto);
   }
 }

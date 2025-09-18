@@ -1,15 +1,16 @@
-// apps/backend/src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    PrismaModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET, // Adicione essa variável ao seu .env do backend!
-      signOptions: { expiresIn: '1d' }, // Token expira em 1 dia
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthController],

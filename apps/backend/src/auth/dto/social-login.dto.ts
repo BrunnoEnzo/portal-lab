@@ -1,6 +1,15 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
 
 export class SocialLoginDto {
-  @IsEmail() email: string;
-  @IsString() @IsNotEmpty() name: string;
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  provider: string; // <<< Adicionado e validado
 }
