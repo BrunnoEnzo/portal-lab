@@ -4,5 +4,4 @@ export class RegisterStudentDto {
   @IsString() @IsNotEmpty() name: string;
   @IsEmail() email: string;
   @IsString() @MinLength(8) password: string;
-  @IsString() @IsNotEmpty() matricula: string;
 }

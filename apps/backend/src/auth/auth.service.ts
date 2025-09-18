@@ -2,7 +2,6 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterStudentDto } from './dto/register-student.dto';
-import { SocialLoginDto } from './dto/social-login.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
@@ -14,13 +13,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // CADASTRO DE ESTUDANTE COM SENHA
   async registerStudent(dto: RegisterStudentDto) {
-    const existingUser = await this.prisma.user.findFirst({
-      where: { OR: [{ email: dto.email }, { matricula: dto.matricula }] },
-    });
+    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingUser) {
-      throw new ConflictException('E-mail ou matrícula já cadastrados.');
+      throw new ConflictException('Um usuário com este e-mail já existe.');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -29,7 +25,6 @@ export class AuthService {
         email: dto.email,
         name: dto.name,
         password: hashedPassword,
-        matricula: dto.matricula,
         role: 'STUDENT',
       },
     });
@@ -37,7 +32,6 @@ export class AuthService {
     return this.generateToken(user.id, user.email, user.role);
   }
   
-  // LOGIN COM SENHA
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
 
@@ -53,24 +47,6 @@ export class AuthService {
     return this.generateToken(user.id, user.email, user.role);
   }
 
-  // LOGIN SOCIAL (GOOGLE, GITHUB)
-  async handleSocialLogin(dto: SocialLoginDto) {
-    const user = await this.prisma.user.upsert({
-      where: { email: dto.email },
-      update: { name: dto.name },
-      create: {
-        email: dto.email,
-        name: dto.name,
-        role: 'STUDENT',
-      },
-    });
-    
-    // Retorna o usuário completo para o NextAuth.js
-    const { password, ...result } = user;
-    return result;
-  }
-
-  // GERA O TOKEN JWT
   private async generateToken(userId: number, email: string, role: Role) {
     const payload = { sub: userId, email, role };
     return {

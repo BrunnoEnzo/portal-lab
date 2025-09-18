@@ -17,7 +17,6 @@ model User {
   // A senha é opcional, pois usuários de login social não terão uma.
   password  String?
   role      Role     @default(STUDENT)
-  matricula String?  @unique // A matrícula agora está aqui e é opcional/única
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
