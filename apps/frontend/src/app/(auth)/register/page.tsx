@@ -1,3 +1,5 @@
+// src/app/(auth)/register/page.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -12,9 +14,7 @@ import {
 import Link from 'next/link';
 import { SocialLoginButtons } from '@/components/features/auth/SocialLoginButtons';
 
-// Definimos o componente da página de registro
 export default function RegisterPage() {
-  // Estados para os campos do formulário e mensagens de erro/sucesso
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,10 +44,7 @@ export default function RegisterPage() {
     // Lê a resposta do backend
     const data = await response.json();
 
-    // Se a resposta não for OK, pegamos a mensagem de erro do backend
     if (!response.ok) {
-      // O NestJS envia os erros de validação dentro de um array 'message'
-      // Esta linha extrai a primeira mensagem de erro para exibir ao usuário
       const errorMessage = Array.isArray(data.message) ? data.message[0] : data.message;
       setError(errorMessage || 'Ocorreu um erro no registro.');
       return;
@@ -59,13 +56,11 @@ export default function RegisterPage() {
     }, 2000);
 
   } catch (err) {
-    // Este erro agora só deve acontecer se o servidor estiver offline
     setError('Não foi possível conectar ao servidor.');
     console.error('Erro de conexão:', err);
   }
 };
 
-  // Estrutura JSX do componente
   return (
     <Container component="main" maxWidth="xs">
       <Box
@@ -137,4 +132,4 @@ export default function RegisterPage() {
       </Box>
     </Container>
   );
-} // <--- A chave de fechamento final está aqui, na posição correta.
+}

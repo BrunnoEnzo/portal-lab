@@ -14,7 +14,7 @@ export const Footer = () => {
           © {currentYear} Portal Lab. Todos os direitos reservados.
         </Typography>
         <Typography variant="caption" align="center" display="block" className="mt-2 text-gray-400">
-          Desenvolvido por Brunno Enzo Silva Meneses
+          Em desenvolvimento por Brunno Enzo Silva Meneses
         </Typography>
       </Container>
     </Box>

@@ -11,5 +11,5 @@ export class SocialLoginDto {
 
   @IsString()
   @IsNotEmpty()
-  provider: string; // <<< Adicionado e validado
+  provider: string;
 }

@@ -19,7 +19,6 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterStudentDto) {
-    // CORREÇÃO AQUI: trocado 'in' por '='
     const { name, email, password } = registerDto;
 
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
@@ -57,7 +56,6 @@ export class AuthService {
   }
 
   async socialLogin(socialLoginDto: SocialLoginDto) {
-    // Agora isso funciona, pois o DTO está correto
     const { name, email, provider } = socialLoginDto;
 
     let user = await this.prisma.user.findUnique({ where: { email } });

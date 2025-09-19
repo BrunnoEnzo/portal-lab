@@ -1,17 +1,25 @@
-// middleware.ts
+// apps/frontend/src/middleware.ts
+
+import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
-// Middleware que intercepta todas as requisições
-export function middleware(request: NextRequest) {
-  console.log('Middleware executado para a rota:', request.nextUrl.pathname);
-
-  return NextResponse.next();
-}
+export default withAuth(
+  // A função `withAuth` enriquece sua `Request` com o token do usuário.
+  function middleware() {
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      // O callback 'authorized' decide se o middleware deve ser executado.
+      authorized: ({ token }) => {
+        // Se não houver token (!!token será false), o usuário será
+        // redirecionado para a página de login.
+        return !!token;
+      },
+    },
+  }
+);
 
 export const config = {
-  matcher: [
-    // Aplica o middleware a todas as rotas, exceto as que começam com /api, /_next/static, /_next/image e favicon.ico
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/student/:path*', '/teacher/:path*', '/admin/:path*'],
 };

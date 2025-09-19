@@ -42,8 +42,6 @@ export const authOptions: NextAuthOptions = {
 
           const data = await res.json();
           if (res.ok && data.access_token) {
-            // Retornamos um objeto que inclui o accessToken
-            // Este objeto será o parâmetro 'user' no callback 'jwt' na primeira execução
             return { id: 'credentials-user', accessToken: data.access_token };
           }
           return null;
@@ -53,18 +51,20 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
+  session: {
+    strategy: 'jwt',
+    maxAge: 60, // 1 minuto em segundos
+  },
+
   callbacks: {
     async jwt({ token, user, account }) {
-      // O objeto 'user' só está presente no primeiro login.
-      // Vamos usá-lo para obter o token inicial.
-      
       // Lógica para login com credenciais
       if (user?.accessToken) {
         token.accessToken = user.accessToken;
       }
       
       // Lógica para login social (Google, GitHub)
-      // O 'account' só está presente no login social
       if (account && user) {
         try {
           const res = await fetch(`${NEXT_PUBLIC_API_URL}/auth/social-login`, {
