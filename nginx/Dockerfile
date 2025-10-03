@@ -1,10 +1,8 @@
-# nginx/Dockerfile
+# Imagem base do Nginx
+FROM nginx:alpine
 
-# Use a imagem oficial e leve do Nginx
-FROM nginx:stable-alpine
-
-# Remova a configuração padrão
+# Remove a configuração padrão do Nginx
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copie a sua configuração customizada para dentro do container
-COPY default.conf /etc/nginx/conf.d/
+# Copia o arquivo de configuração personalizado para o container
+COPY nginx.conf /etc/nginx/conf.d

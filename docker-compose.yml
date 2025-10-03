@@ -1,86 +1,91 @@
-# docker-compose.yml
+version: '3.8'
 
 services:
-  # --- Serviço do Banco de Dados PostgreSQL ---
-  postgres:
-    image: postgres:15-alpine
-    container_name: portal-lab-postgres
-    environment:
-      POSTGRES_USER: docker
-      POSTGRES_PASSWORD: docker
-      POSTGRES_DB: portal_lab
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
-    networks:
-      - app-networks
-
-  # --- Serviço do Backend (Nest.js) ---
-  backend:
-    build:
-      context: ./apps/backend
-    container_name: portal-lab-backend
-    ports:
-      - "3001:3001"
-    env_file:
-      - ./apps/backend/.env
-    depends_on:
-      - postgres
-    restart: unless-stopped
-    networks:
-      - app-networks
-
-  # --- Serviço do Frontend (Next.js) ---
-  frontend:
-    build:
-      context: ./apps/frontend
-    container_name: portal-lab-frontend
-    env_file:
-      - ./apps/frontend/.env
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - app-networks
-
-  # --- Serviço do Nginx (Reverse Proxy) ---
+  #--- SERVIÇO NGINX ---#
   nginx:
+    container_name: nginx
     build:
       context: ./nginx
-    container_name: portal-lab-nginx
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "${NGINX_PORT}:80"
     depends_on:
       - frontend
       - backend
-    restart: always
     networks:
-      - app-networks
+      - minha_rede
 
-  # --- Serviço do PGADMIN ---
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: portal-lab-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@email.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
+  #--- SERVIÇO FRONTEND (React + Vite) ---#
+  frontend:
+    container_name: frontend_app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/usr/src/app # Mapeia o código local para o container para hot-reload
+      - /usr/src/app/node_modules # Evita que o node_modules local sobrescreva o do container
     ports:
-      # Acesse o pgAdmin em http://localhost:5050
-      - "5050:80"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    networks:
+      - minha_rede
+    depends_on:
+      - backend
+
+  #--- SERVIÇO BACKEND (NestJS) ---#
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+    networks:
+      - minha_rede
+
+  #--- SERVIÇO POSTGRES ---#
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - minha_rede
+
+  #--- SERVIÇO PGADMIN ---#
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      - postgres
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - postgres # Garante que o pgAdmin só inicie depois do banco
-    restart: unless-stopped
     networks:
-      - app-networks
+      - minha_rede
 
+# Definição dos volumes para persistência de dados
 volumes:
   postgres_data:
   pgadmin_data:
-  
+
+# Definição da rede para comunicação entre os containers
 networks:
-  app-networks:
+  minha_rede:
     driver: bridge
