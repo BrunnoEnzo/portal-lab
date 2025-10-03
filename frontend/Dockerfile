@@ -6,9 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Garante que NEXT_PUBLIC_API_URL não seja necessário durante o build
+
 ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# A variável NEXT_PUBLIC_API_URL será injetada em tempo de execução, não no build.
 RUN npm run build
 
 # --- Estágio 2: Runner (Produção) ---
@@ -27,4 +29,7 @@ COPY --from=builder /app/public ./public
 
 USER nextjs
 EXPOSE 3000
+
+# O Next.js standalone (server.js) irá capturar as variáveis de ambiente
+# que começam com NEXT_PUBLIC_ automaticamente quando o contêiner iniciar.
 CMD ["node", "server.js"]

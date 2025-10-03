@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   #--- SERVIÇO NGINX ---#
@@ -13,21 +12,27 @@ services:
       - frontend
       - backend
     networks:
-      - minha_rede
+      - portal_app
 
   #--- SERVIÇO FRONTEND (React + Vite) ---#
   frontend:
-    container_name: frontend_app
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # --- ADICIONE ESTA SEÇÃO ---
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      # --------------------------
     volumes:
-      - ./frontend:/usr/src/app # Mapeia o código local para o container para hot-reload
-      - /usr/src/app/node_modules # Evita que o node_modules local sobrescreva o do container
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - '${FRONTEND_PORT}:${FRONTEND_PORT}'
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     networks:
-      - minha_rede
+      - portal_app
     depends_on:
       - backend
 
@@ -45,14 +50,16 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      # --- ADICIONE ESTA LINHA ---
+      - JWT_SECRET=${JWT_SECRET}
     networks:
-      - minha_rede
+      - portal_app
 
   #--- SERVIÇO POSTGRES ---#
   postgres:
     container_name: postgres
-    image: postgres:alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -62,7 +69,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - minha_rede
+      - portal_app
 
   #--- SERVIÇO PGADMIN ---#
   pgadmin:
@@ -78,7 +85,7 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:
-      - minha_rede
+      - portal_app
 
 # Definição dos volumes para persistência de dados
 volumes:
@@ -87,5 +94,5 @@ volumes:
 
 # Definição da rede para comunicação entre os containers
 networks:
-  minha_rede:
+  portal_app:
     driver: bridge
