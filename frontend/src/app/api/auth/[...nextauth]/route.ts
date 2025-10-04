@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { jwtDecode } from 'jwt-decode';
 
 const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_INTERNAL_URL = process.env.BACKEND_INTERNAL_URL;
 
 const getDecodedToken = (token: string) => {
   try {
@@ -34,7 +35,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials) return null;
         try {
-          const res = await fetch(`${NEXT_PUBLIC_API_URL}/auth/login`, {
+          const res = await fetch(`${BACKEND_INTERNAL_URL}/auth/login`, {
             method: 'POST',
             body: JSON.stringify(credentials),
             headers: { 'Content-Type': 'application/json' },
@@ -54,7 +55,7 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: 'jwt',
-    maxAge: 60, // 1 minuto em segundos
+    maxAge: 60*60, // 1 minuto em segundos
   },
 
   callbacks: {
@@ -67,7 +68,7 @@ export const authOptions: NextAuthOptions = {
       // Lógica para login social (Google, GitHub)
       if (account && user) {
         try {
-          const res = await fetch(`${NEXT_PUBLIC_API_URL}/auth/social-login`, {
+          const res = await fetch(`${BACKEND_INTERNAL_URL}/auth/social-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
