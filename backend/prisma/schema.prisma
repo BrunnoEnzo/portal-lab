@@ -11,19 +11,17 @@ datasource db {
 
 enum Role {
   STUDENT
+  PROFESSOR
   ADMIN
-  // Você tinha PROFESSOR e ADMINISTRATIVE, pode adicionar de volta se precisar
 }
 
 model User {
-  // ID como UUID
   id        String   @id @default(uuid())
   
   name      String
   email     String   @unique
   password  String?  // Opcional para login social
 
-  // --- CAMPO QUE FALTAVA ---
   provider  String   @default("credentials")
 
   role      Role     @default(STUDENT)

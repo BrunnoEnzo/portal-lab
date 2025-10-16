@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { Container, Typography, Box } from '@mui/material';
 
 export default function StudentDashboard() {
-  // Crie uma função para lidar com o clique do botão
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' }); // Redireciona para a página de login após o logout
   };

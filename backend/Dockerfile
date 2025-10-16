@@ -14,8 +14,6 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-# Otimização: Copia o schema do Prisma antes de instalar,
-# para que o Docker não reinstale as dependências se apenas o código mudar.
 COPY prisma ./prisma
 RUN npm install --omit=dev
 RUN npx prisma generate
