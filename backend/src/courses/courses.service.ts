@@ -11,7 +11,21 @@ export class CoursesService {
 
   // POST /courses (Já tínhamos este)
   async create(createCourseDto: CreateCourseDto, professor: User) {
-    // ...código existente...
+    if (professor.role !== 'PROFESSOR') {
+      throw new UnauthorizedException('Apenas professores podem criar cursos.');
+    }
+
+    const { name, summary, description, coverPhotoUrl } = createCourseDto;
+
+    return this.prisma.course.create({
+      data: {
+        name,
+        summary,
+        description,
+        coverPhotoUrl,
+        professorId: professor.id,
+      },
+    });
   }
 
   // GET /courses

@@ -8,7 +8,18 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 export class ArticlesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createArticleDto: CreateArticleDto, professor: User) { /* ...código existente... */ }
+  async create(createArticleDto: CreateArticleDto, professor: User) {
+    if (professor.role !== 'PROFESSOR') {
+      throw new UnauthorizedException('Apenas professores podem criar artigos.');
+    }
+
+    return this.prisma.article.create({
+      data: {
+        ...createArticleDto,
+        professorId: professor.id,
+      },
+    });
+  }
   
   async findAllByProfessor(professorId: string) {
     return this.prisma.article.findMany({ where: { professorId } });

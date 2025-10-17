@@ -8,7 +8,18 @@ import { UpdateTutorialDto } from './dto/update-tutorial.dto';
 export class TutorialsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTutorialDto: CreateTutorialDto, professor: User) { /* ...código existente... */ }
+  async create(createTutorialDto: CreateTutorialDto, professor: User) {
+    if (professor.role !== 'PROFESSOR') {
+      throw new UnauthorizedException('Apenas professores podem criar tutoriais.');
+    }
+
+    return this.prisma.tutorial.create({
+      data: {
+        ...createTutorialDto,
+        professorId: professor.id,
+      },
+    });
+  }
 
   async findAllByProfessor(professorId: string) {
     return this.prisma.tutorial.findMany({ where: { professorId } });
