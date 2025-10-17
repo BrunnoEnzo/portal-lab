@@ -10,6 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import CircularProgress from '@mui/material/CircularProgress';
+import api from '@/lib/api';
 
 interface AddTutorialDialogProps {
   open: boolean;
@@ -39,41 +40,27 @@ export function AddTutorialDialog({ open, onClose }: AddTutorialDialogProps) {
     }
 
     try {
-      // --- LÓGICA DE API (Simulação) ---
-      // Aqui você chamará sua API para criar o tutorial
-      console.log('Criando tutorial com os dados:', tutorialData);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const newTutorialId = 'tutorial-criado-' + Date.now();
-      // --- FIM DA LÓGICA DE API ---
+      const response = await api.post('/tutorials', tutorialData);
+      const newTutorial = response.data;
 
       onClose();
-      router.push(`/professor/manage-tutorials/${newTutorialId}`);
+      router.push(`/professor/manage-tutorials/${newTutorial.id}`);
     } catch (err) {
       console.error('Falha ao criar tutorial:', err);
       setError('Não foi possível criar o tutorial. Tente novamente.');
+    } finally {
       setIsCreating(false);
     }
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
-      maxWidth="sm" 
-      PaperProps={{
-        sx: {
-          bgcolor: '#ffffff',
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Adicionar Novo Tutorial</DialogTitle>
       <form onSubmit={handleCreateTutorial}>
-        <DialogContent>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <TextField
             autoFocus
             required
-            margin="dense"
             id="name"
             name="name"
             label="Nome do Tutorial"
@@ -83,7 +70,6 @@ export function AddTutorialDialog({ open, onClose }: AddTutorialDialogProps) {
           />
           <TextField
             required
-            margin="dense"
             id="summary"
             name="summary"
             label="Resumo / Breve Descrição"
@@ -92,10 +78,10 @@ export function AddTutorialDialog({ open, onClose }: AddTutorialDialogProps) {
             variant="outlined"
           />
           {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
+            <p className="mt-2 text-sm text-red-600">{''}{error}</p>
           )}
         </DialogContent>
-        <DialogActions className="p-4">
+        <DialogActions sx={{ p: '1rem' }}>
           <Button onClick={onClose} color="secondary" disabled={isCreating}>
             Cancelar
           </Button>

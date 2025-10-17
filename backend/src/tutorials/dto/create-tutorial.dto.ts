@@ -1,22 +1,16 @@
 // backend/src/tutorials/dto/create-tutorial.dto.ts
-import { IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'; // Adicione o IsOptional aqui
 
 export class CreateTutorialDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
+  @IsString({ message: 'O nome deve ser uma string.' })
+  @IsNotEmpty({ message: 'O nome não pode ser vazio.' })
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
+  @IsString({ message: 'O resumo deve ser uma string.' })
+  @IsNotEmpty({ message: 'O resumo não pode ser vazio.' })
   summary: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsOptional() // <<< ADICIONE ESTA LINHA
+  @IsString({ message: 'O conteúdo deve ser uma string.' })
   content: string;
-
-  @IsUrl()
-  @IsOptional()
-  youtubeUrl?: string;
 }

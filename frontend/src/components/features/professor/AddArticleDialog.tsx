@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -9,10 +10,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import CircularProgress from '@mui/material/CircularProgress';
-import { styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles'; // Importe o 'styled'
 import { CloudUpload } from '@mui/icons-material';
+import api from '@/lib/api';
 
-// Estilizando o input de arquivo para ficar invisível
+// Definição do VisuallyHiddenInput que estava faltando
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -28,11 +30,15 @@ const VisuallyHiddenInput = styled('input')({
 interface AddArticleDialogProps {
   open: boolean;
   onClose: () => void;
-  // Função para ser chamada quando um artigo for criado, para atualizar a lista
   onArticleAdded: () => void;
 }
 
-export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDialogProps) {
+export function AddArticleDialog({
+  open,
+  onClose,
+  onArticleAdded,
+}: AddArticleDialogProps) {
+  const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
@@ -42,34 +48,40 @@ export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDi
     setFileName(file ? file.name : '');
   };
 
-  const handleCreateArticle = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateArticle = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
     setIsCreating(true);
     setError('');
 
     const formData = new FormData(event.currentTarget);
-    const pdfFile = formData.get('pdf-file');
+    const pdfFile = formData.get('pdfFile');
 
-    // Validação
-    if (!formData.get('name') || !formData.get('summary') || !pdfFile || (pdfFile as File).size === 0) {
-      setError('Por favor, preencha todos os campos e selecione um arquivo PDF.');
+    if (
+      !formData.get('name') ||
+      !formData.get('summary') ||
+      !pdfFile ||
+      (pdfFile as File).size === 0
+    ) {
+      setError(
+        'Por favor, preencha todos os campos e selecione um arquivo PDF.',
+      );
       setIsCreating(false);
       return;
     }
 
     try {
-      // --- LÓGICA DE API (Simulação) ---
-      // Aqui você enviaria o formData (que inclui o arquivo) para a sua API
-      console.log('Criando artigo com os dados:', {
-        name: formData.get('name'),
-        summary: formData.get('summary'),
-        file: pdfFile,
+      const response = await api.post('/articles', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simula upload
-      // --- FIM DA LÓGICA DE API ---
-      
-      onArticleAdded(); // Avisa o componente pai para recarregar a lista
-      onClose(); // Fecha o dialog
+      const newArticle = response.data;
+
+      onArticleAdded();
+      onClose();
+      router.push(`/professor/manage-articles/${newArticle.id}`);
     } catch (err) {
       console.error('Falha ao criar artigo:', err);
       setError('Não foi possível criar o artigo. Tente novamente.');
@@ -79,20 +91,12 @@ export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDi
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
-      maxWidth="sm" 
-      PaperProps={{
-        sx: {
-          bgcolor: '#ffffff',
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Adicionar Novo Artigo</DialogTitle>
       <form onSubmit={handleCreateArticle}>
-        <DialogContent className="flex flex-col gap-4">
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           <TextField
             autoFocus
             required
@@ -120,21 +124,27 @@ export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDi
             startIcon={<CloudUpload />}
           >
             Selecionar PDF
-            <VisuallyHiddenInput type="file" name="pdf-file" accept=".pdf" onChange={handleFileChange} />
+            {/* Agora o VisuallyHiddenInput está definido e o erro vai sumir */}
+            <VisuallyHiddenInput
+              type="file"
+              name="pdfFile"
+              accept=".pdf"
+              onChange={handleFileChange}
+            />
           </Button>
-          {fileName && (
-            <p className="mt-1 text-sm text-gray-600">Arquivo: {fileName}</p>
-          )}
-          {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
-          )}
+          {fileName && <p className="mt-1 text-sm text-gray-600">{fileName}</p>}
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </DialogContent>
-        <DialogActions className="p-4">
+        <DialogActions sx={{ p: '1rem' }}>
           <Button onClick={onClose} color="secondary" disabled={isCreating}>
             Cancelar
           </Button>
           <Button type="submit" variant="contained" disabled={isCreating}>
-            {isCreating ? <CircularProgress size={24} color="inherit" /> : 'Criar Artigo'}
+            {isCreating ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Criar e Editar'
+            )}
           </Button>
         </DialogActions>
       </form>

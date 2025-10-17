@@ -10,6 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import CircularProgress from '@mui/material/CircularProgress';
+import api from '@/lib/api';
 
 interface AddCourseDialogProps {
   open: boolean;
@@ -32,7 +33,6 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
       summary: formData.get('summary') as string,
     };
 
-    // Validação simples
     if (!courseData.name || !courseData.summary) {
       setError('Por favor, preencha todos os campos.');
       setIsCreating(false);
@@ -40,39 +40,27 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
     }
 
     try {
-      console.log('Criando curso com os dados:', courseData);
-      await new Promise((resolve) => setTimeout(resolve, 1500)); 
-      const newCourseId = 'curso-criado-' + Date.now(); 
+      const response = await api.post('/courses', courseData);
+      const newCourse = response.data;
 
       onClose();
-      router.push(`/professor/manage-courses/${newCourseId}`);
+      router.push(`/professor/manage-courses/${newCourse.id}`);
     } catch (err) {
       console.error('Falha ao criar curso:', err);
       setError('Não foi possível criar o curso. Tente novamente.');
+    } finally {
       setIsCreating(false);
     }
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
-      maxWidth="sm"
-      // CORREÇÃO APLICADA AQUI
-      PaperProps={{
-        sx: {
-          bgcolor: '#ffffff',
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Adicionar Novo Curso</DialogTitle>
       <form onSubmit={handleCreateCourse}>
-        <DialogContent>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <TextField
             autoFocus
             required
-            margin="dense"
             id="name"
             name="name"
             label="Nome do Curso"
@@ -82,7 +70,6 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
           />
           <TextField
             required
-            margin="dense"
             id="summary"
             name="summary"
             label="Resumo / Breve Descrição"
@@ -91,10 +78,10 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
             variant="outlined"
           />
           {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
+            <p className="mt-2 text-sm text-red-600">{''}{error}</p>
           )}
         </DialogContent>
-        <DialogActions className="p-4">
+        <DialogActions sx={{ p: '1rem' }}>
           <Button onClick={onClose} color="secondary" disabled={isCreating}>
             Cancelar
           </Button>
