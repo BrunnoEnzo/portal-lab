@@ -1,3 +1,4 @@
+// backend/src/tutorials/tutorials.service.ts
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,14 +9,19 @@ import { UpdateTutorialDto } from './dto/update-tutorial.dto';
 export class TutorialsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTutorialDto: CreateTutorialDto, professor: User) {
+  async create(createTutorialDto: CreateTutorialDto, professor: User, coverPhotoPath: string | null) {
     if (professor.role !== 'PROFESSOR') {
       throw new UnauthorizedException('Apenas professores podem criar tutoriais.');
+    }
+    
+    if (!coverPhotoPath) {
+        throw new Error("A foto de capa é obrigatória.");
     }
 
     return this.prisma.tutorial.create({
       data: {
         ...createTutorialDto,
+        coverPhotoPath,
         professorId: professor.id,
       },
     });
@@ -28,14 +34,20 @@ export class TutorialsService {
   async findOne(id: string, professorId: string) {
     const tutorial = await this.prisma.tutorial.findUnique({ where: { id } });
     if (!tutorial || tutorial.professorId !== professorId) {
-      throw new NotFoundException(`Tutorial with ID "${id}" not found`);
+      throw new NotFoundException(`Tutorial com ID "${id}" não encontrado.`);
     }
     return tutorial;
   }
 
-  async update(id: string, updateTutorialDto: UpdateTutorialDto, professorId: string) {
+  async update(id: string, updateTutorialDto: UpdateTutorialDto, professorId: string, coverPhotoPath?: string) {
     await this.findOne(id, professorId);
-    return this.prisma.tutorial.update({ where: { id }, data: updateTutorialDto });
+    return this.prisma.tutorial.update({
+      where: { id },
+      data: {
+        ...updateTutorialDto,
+        ...(coverPhotoPath && { coverPhotoPath }),
+      },
+    });
   }
 
   async remove(id: string, professorId: string) {

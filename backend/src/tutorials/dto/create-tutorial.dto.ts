@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'class-valida
 export class CreateTutorialDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
+  @MaxLength(255)
   name: string;
 
   @IsString()
@@ -12,15 +12,11 @@ export class CreateTutorialDto {
   @MaxLength(255)
   summary: string;
 
-  @IsUrl()
+  @IsString()
   @IsNotEmpty()
-  coverPhotoUrl: string;
+  content: string;
 
   @IsUrl()
   @IsOptional()
   youtubeUrl?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  content: string;
 }

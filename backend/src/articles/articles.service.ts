@@ -8,14 +8,20 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 export class ArticlesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createArticleDto: CreateArticleDto, professor: User) {
+  async create(createArticleDto: CreateArticleDto, professor: User, pdfFilePath: string | null, coverPhotoPath: string | null) {
     if (professor.role !== 'PROFESSOR') {
       throw new UnauthorizedException('Apenas professores podem criar artigos.');
+    }
+
+    if (!pdfFilePath) {
+      throw new Error("O arquivo PDF é obrigatório.");
     }
 
     return this.prisma.article.create({
       data: {
         ...createArticleDto,
+        pdfFilePath,
+        coverPhotoPath,
         professorId: professor.id,
       },
     });
@@ -28,14 +34,21 @@ export class ArticlesService {
   async findOne(id: string, professorId: string) {
     const article = await this.prisma.article.findUnique({ where: { id } });
     if (!article || article.professorId !== professorId) {
-      throw new NotFoundException(`Article with ID "${id}" not found`);
+      throw new NotFoundException(`Artigo com ID "${id}" não encontrado.`);
     }
     return article;
   }
 
-  async update(id: string, updateArticleDto: UpdateArticleDto, professorId: string) {
+  async update(id: string, updateArticleDto: UpdateArticleDto, professorId: string, pdfFilePath?: string, coverPhotoPath?: string) {
     await this.findOne(id, professorId);
-    return this.prisma.article.update({ where: { id }, data: updateArticleDto });
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        ...updateArticleDto,
+        ...(pdfFilePath && { pdfFilePath }),
+        ...(coverPhotoPath && { coverPhotoPath }),
+      },
+    });
   }
 
   async remove(id: string, professorId: string) {

@@ -1,5 +1,5 @@
 // backend/src/articles/dto/create-article.dto.ts
-import { IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateArticleDto {
   @IsString()
@@ -12,11 +12,4 @@ export class CreateArticleDto {
   @MaxLength(255)
   summary: string;
 
-  @IsUrl()
-  @IsNotEmpty()
-  pdfFileUrl: string;
-
-  @IsUrl()
-  @IsOptional()
-  coverPhotoUrl?: string;
 }

@@ -52,6 +52,7 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
+      - uploads:/usr/src/app/uploads
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -98,6 +99,7 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+  uploads:
 
 # Definição da rede para comunicação entre os containers
 networks:

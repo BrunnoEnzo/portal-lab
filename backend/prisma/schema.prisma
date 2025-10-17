@@ -45,7 +45,7 @@ model Course {
   name          String
   summary       String
   description   String    @db.Text
-  coverPhotoUrl String
+  coverPhotoPath String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -134,7 +134,7 @@ model Tutorial {
   id            String    @id @default(uuid())
   name          String
   summary       String
-  coverPhotoUrl String
+  coverPhotoPath String
   youtubeUrl    String? // O '?' torna o campo opcional
   content       String    @db.Text
   createdAt     DateTime  @default(now())
@@ -149,8 +149,8 @@ model Article {
   id            String    @id @default(uuid())
   name          String
   summary       String
-  coverPhotoUrl String?   // O '?' torna o campo opcional
-  pdfFileUrl    String    // URL para o arquivo PDF
+  coverPhotoPath String?   // O '?' torna o campo opcional
+  pdfFilePath    String    // URL para o arquivo PDF
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

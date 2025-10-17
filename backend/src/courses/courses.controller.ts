@@ -1,22 +1,35 @@
 // backend/src/courses/courses.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '@prisma/client';
-import { Request } from 'express';
+import type { Request } from 'express';
+import { diskStorage } from 'multer';
+import type { Express } from 'express';
 
 interface AuthRequest extends Request { user: User; }
 
-@UseGuards(JwtAuthGuard) // Aplicamos o guard a todas as rotas do controller
+@UseGuards(JwtAuthGuard)
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto, @Req() req: AuthRequest) {
-    return this.coursesService.create(createCourseDto, req.user);
+  @UseInterceptors(FileInterceptor('coverPhoto', {
+    storage: diskStorage({
+      destination: './uploads/foto-curso',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
+      },
+    }),
+  }))
+  create(@UploadedFile() file: Express.Multer.File, @Body() createCourseDto: CreateCourseDto, @Req() req: AuthRequest) {
+    const coverPhotoPath = file ? `/uploads/foto-curso/${file.filename}` : null;
+    return this.coursesService.create(createCourseDto, req.user, coverPhotoPath);
   }
 
   @Get()
@@ -30,8 +43,18 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto, @Req() req: AuthRequest) {
-    return this.coursesService.update(id, updateCourseDto, req.user.id);
+  @UseInterceptors(FileInterceptor('coverPhoto', {
+    storage: diskStorage({
+      destination: './uploads/foto-curso',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
+      },
+    }),
+  }))
+  update(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateCourseDto: UpdateCourseDto, @Req() req: AuthRequest) {
+    const coverPhotoPath = file ? `/uploads/foto-curso/${file.filename}` : undefined;
+    return this.coursesService.update(id, updateCourseDto, req.user.id, coverPhotoPath);
   }
 
   @Delete(':id')
