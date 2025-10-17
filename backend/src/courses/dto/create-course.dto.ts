@@ -9,7 +9,7 @@ export class CreateCourseDto {
   @IsNotEmpty({ message: 'O resumo não pode ser vazio.' })
   summary: string;
 
-  @IsOptional() // <-- A linha mais importante!
+  @IsOptional()
   @IsString({ message: 'A descrição deve ser uma string.' })
   description: string;
 }
