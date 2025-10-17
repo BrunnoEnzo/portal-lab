@@ -86,7 +86,7 @@ export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDi
       maxWidth="sm" 
       PaperProps={{
         sx: {
-          bgcolor: 'background.paper',
+          bgcolor: '#ffffff',
         },
       }}
     >

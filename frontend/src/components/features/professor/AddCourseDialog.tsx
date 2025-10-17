@@ -62,7 +62,7 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
       // CORREÇÃO APLICADA AQUI
       PaperProps={{
         sx: {
-          bgcolor: 'background.paper',
+          bgcolor: '#ffffff',
         },
       }}
     >

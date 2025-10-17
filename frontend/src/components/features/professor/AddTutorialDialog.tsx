@@ -63,7 +63,7 @@ export function AddTutorialDialog({ open, onClose }: AddTutorialDialogProps) {
       maxWidth="sm" 
       PaperProps={{
         sx: {
-          bgcolor: 'background.paper',
+          bgcolor: '#ffffff',
         },
       }}
     >

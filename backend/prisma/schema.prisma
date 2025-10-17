@@ -15,6 +15,12 @@ enum Role {
   ADMIN
 }
 
+enum LessonType {
+  VIDEO
+  READING
+  ACTIVITY
+}
+
 model User {
   id        String   @id @default(uuid())
   
@@ -27,4 +33,128 @@ model User {
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  courses   Course[]
+  tutorials Tutorial[]
+  articles  Article[]
+}
+
+
+model Course {
+  id            String    @id @default(uuid())
+  name          String
+  summary       String
+  description   String    @db.Text
+  coverPhotoUrl String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relação com o professor (User)
+  professor   User      @relation(fields: [professorId], references: [id])
+  professorId String
+
+  chapters Chapter[]
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  title     String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String
+
+  lessons Lesson[]
+}
+
+model Lesson {
+  id        String     @id @default(uuid())
+  title     String
+  type      LessonType
+  order     Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapterId String
+
+  videoLesson   VideoLesson?
+  readingLesson ReadingLesson?
+  activity      Activity?
+}
+
+model VideoLesson {
+  id         String  @id @default(uuid())
+  youtubeUrl String
+  summary    String? @db.Text
+
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String @unique
+}
+
+model ReadingLesson {
+  id      String @id @default(uuid())
+  content String @db.Text
+
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String @unique
+}
+
+model Activity {
+  id String @id @default(uuid())
+
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String @unique
+
+  questions Question[]
+}
+
+model Question {
+  id   String @id @default(uuid())
+  text String @db.Text
+
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId String
+
+  alternatives Alternative[]
+}
+
+model Alternative {
+  id        String  @id @default(uuid())
+  text      String
+  isCorrect Boolean @default(false)
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+}
+
+model Tutorial {
+  id            String    @id @default(uuid())
+  name          String
+  summary       String
+  coverPhotoUrl String
+  youtubeUrl    String? // O '?' torna o campo opcional
+  content       String    @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relação com o professor que criou
+  professor   User     @relation(fields: [professorId], references: [id])
+  professorId String
+}
+
+model Article {
+  id            String    @id @default(uuid())
+  name          String
+  summary       String
+  coverPhotoUrl String?   // O '?' torna o campo opcional
+  pdfFileUrl    String    // URL para o arquivo PDF
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relação com o professor que criou
+  professor   User     @relation(fields: [professorId], references: [id])
+  professorId String
 }
