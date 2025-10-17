@@ -1,71 +1,70 @@
-// backend/src/courses/courses.service.ts
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { User } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CoursesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createCourseDto: CreateCourseDto, professor: User, coverPhotoPath: string | null) {
-    if (professor.role !== 'PROFESSOR') {
-      throw new UnauthorizedException('Apenas professores podem criar cursos.');
+  async create(createCourseDto: CreateCourseDto, userId: string) {
+    // Simplificado: Sem parâmetro 'coverPhoto'
+    try {
+      const course = await this.prisma.course.create({
+        data: {
+          ...createCourseDto,
+          // Campos opcionais (description, coverPhotoPath) não são definidos aqui
+          professor: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+      return course;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Aconteceu um erro ao criar o curso',
+        error.message,
+      );
     }
-
-    if (!coverPhotoPath) {
-      throw new Error("A foto de capa é obrigatória.");
-    }
-
-    const { name, summary, description } = createCourseDto;
-
-    return this.prisma.course.create({
-      data: {
-        name,
-        summary,
-        description,
-        coverPhotoPath,
-        professorId: professor.id,
-      },
-    });
   }
 
-  async findAllByProfessor(professorId: string) {
-    return this.prisma.course.findMany({
-      where: { professorId },
-    });
+  findAll() {
+    return this.prisma.course.findMany();
   }
 
-  async findOne(id: string, professorId: string) {
-    const course = await this.prisma.course.findUnique({
-      where: { id },
-    });
-
-    if (!course || course.professorId !== professorId) {
-      throw new NotFoundException(`Curso com ID "${id}" não encontrado.`);
+  async findOne(id: string) {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+    if (!course) {
+      throw new NotFoundException(`Curso com ID ${id} não encontrado`);
     }
-
     return course;
   }
 
-  async update(id: string, updateCourseDto: UpdateCourseDto, professorId: string, coverPhotoPath?: string) {
-    await this.findOne(id, professorId); 
-    
+  async update(
+    id: string,
+    updateCourseDto: UpdateCourseDto,
+    coverPhoto?: Express.Multer.File,
+  ) {
+    // Adicionado parâmetro 'coverPhoto'
+    const data: any = { ...updateCourseDto };
+
+    if (coverPhoto) {
+      data.coverPhotoPath = coverPhoto.path;
+    }
+
     return this.prisma.course.update({
       where: { id },
-      data: {
-        ...updateCourseDto,
-        ...(coverPhotoPath && { coverPhotoPath }),
-      },
+      data,
     });
   }
 
-  async remove(id: string, professorId: string) {
-    await this.findOne(id, professorId);
-
-    return this.prisma.course.delete({
-      where: { id },
-    });
+  remove(id: string) {
+    return this.prisma.course.delete({ where: { id } });
   }
 }

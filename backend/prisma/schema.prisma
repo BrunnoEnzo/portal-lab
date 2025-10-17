@@ -45,7 +45,7 @@ model Course {
   name          String
   summary       String
   description   String?    @db.Text
-  coverPhotoPath String
+  coverPhotoPath String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -134,7 +134,7 @@ model Tutorial {
   id            String    @id @default(uuid())
   name          String
   summary       String
-  coverPhotoPath String
+  coverPhotoPath String?
   youtubeUrl    String? // O '?' torna o campo opcional
   content       String?    @db.Text
   createdAt     DateTime  @default(now())

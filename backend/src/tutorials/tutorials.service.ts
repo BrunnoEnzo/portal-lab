@@ -1,57 +1,70 @@
-// backend/src/tutorials/tutorials.service.ts
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TutorialsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTutorialDto: CreateTutorialDto, professor: User, coverPhotoPath: string | null) {
-    if (professor.role !== 'PROFESSOR') {
-      throw new UnauthorizedException('Apenas professores podem criar tutoriais.');
+  async create(createTutorialDto: CreateTutorialDto, userId: string) {
+    // Simplificado: Sem parâmetro 'coverPhoto'
+    try {
+      const tutorial = await this.prisma.tutorial.create({
+        data: {
+          ...createTutorialDto,
+          // Campos opcionais (content, youtubeUrl, coverPhotoPath) não são definidos aqui
+          professor: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+      return tutorial;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Aconteceu um erro ao criar o tutorial',
+        error.message,
+      );
     }
-    
-    if (!coverPhotoPath) {
-        throw new Error("A foto de capa é obrigatória.");
-    }
-
-    return this.prisma.tutorial.create({
-      data: {
-        ...createTutorialDto,
-        coverPhotoPath,
-        professorId: professor.id,
-      },
-    });
   }
 
-  async findAllByProfessor(professorId: string) {
-    return this.prisma.tutorial.findMany({ where: { professorId } });
+  findAll() {
+    return this.prisma.tutorial.findMany();
   }
 
-  async findOne(id: string, professorId: string) {
+  async findOne(id: string) {
     const tutorial = await this.prisma.tutorial.findUnique({ where: { id } });
-    if (!tutorial || tutorial.professorId !== professorId) {
-      throw new NotFoundException(`Tutorial com ID "${id}" não encontrado.`);
+    if (!tutorial) {
+      throw new NotFoundException(`Tutorial com ID ${id} não encontrado`);
     }
     return tutorial;
   }
 
-  async update(id: string, updateTutorialDto: UpdateTutorialDto, professorId: string, coverPhotoPath?: string) {
-    await this.findOne(id, professorId);
+  async update(
+    id: string,
+    updateTutorialDto: UpdateTutorialDto,
+    coverPhoto?: Express.Multer.File,
+  ) {
+    // Adicionado parâmetro 'coverPhoto'
+    const data: any = { ...updateTutorialDto };
+
+    if (coverPhoto) {
+      data.coverPhotoPath = coverPhoto.path;
+    }
+
     return this.prisma.tutorial.update({
       where: { id },
-      data: {
-        ...updateTutorialDto,
-        ...(coverPhotoPath && { coverPhotoPath }),
-      },
+      data,
     });
   }
 
-  async remove(id: string, professorId: string) {
-    await this.findOne(id, professorId);
+  remove(id: string) {
     return this.prisma.tutorial.delete({ where: { id } });
   }
 }

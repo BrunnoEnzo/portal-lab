@@ -1,18 +1,24 @@
-// backend/src/tutorials/tutorials.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+} from '@nestjs/common';
 import { TutorialsService } from './tutorials.service';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { User } from '@prisma/client';
-import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import type { Express } from 'express';
-
-interface AuthRequest extends Request {
-  user: User;
-}
 
 @UseGuards(JwtAuthGuard)
 @Controller('tutorials')
@@ -20,47 +26,43 @@ export class TutorialsController {
   constructor(private readonly tutorialsService: TutorialsService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('coverPhoto', {
-    storage: diskStorage({
-      destination: './uploads/foto-tutorial',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
-      },
-    }),
-  }))
-  create(@UploadedFile() file: Express.Multer.File, @Body() createTutorialDto: CreateTutorialDto, @Req() req: AuthRequest) {
-    const coverPhotoPath = file ? `/uploads/foto-tutorial/${file.filename}` : null;
-    return this.tutorialsService.create(createTutorialDto, req.user, coverPhotoPath);
+  // REMOVIDO: Lógica de upload de arquivo
+  create(@Body() createTutorialDto: CreateTutorialDto, @Req() req: any) {
+    // Apenas o DTO e o ID do usuário são passados
+    return this.tutorialsService.create(createTutorialDto, req.user.id);
   }
 
   @Get()
-  findAll(@Req() req: AuthRequest) {
-    return this.tutorialsService.findAllByProfessor(req.user.id);
+  findAll() {
+    return this.tutorialsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: AuthRequest) {
-    return this.tutorialsService.findOne(id, req.user.id);
+  findOne(@Param('id') id: string) {
+    return this.tutorialsService.findOne(id);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('coverPhoto', {
-    storage: diskStorage({
-      destination: './uploads/foto-tutorial',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
-      },
-    }),
-  }))
-  update(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateTutorialDto: UpdateTutorialDto, @Req() req: AuthRequest) {
-    const coverPhotoPath = file ? `/uploads/foto-tutorial/${file.filename}` : undefined;
-    return this.tutorialsService.update(id, updateTutorialDto, req.user.id, coverPhotoPath);
+  @UseInterceptors(FileInterceptor('coverPhoto')) // ADICIONADO: Lógica de upload de arquivo
+  update(
+    @Param('id') id: string,
+    @Body() updateTutorialDto: UpdateTutorialDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB
+          new FileTypeValidator({ fileType: 'image' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    coverPhoto: Express.Multer.File,
+  ) {
+    return this.tutorialsService.update(id, updateTutorialDto, coverPhoto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: AuthRequest) {
-    return this.tutorialsService.remove(id, req.user.id);
+  remove(@Param('id') id: string) {
+    return this.tutorialsService.remove(id);
   }
 }
