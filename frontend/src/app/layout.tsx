@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ThemeRegistry from '@/components/ThemeRegistry';
-import { Header } from '@/components/layout/Header'; // 1. Importe o Header
-import { Footer } from '@/components/layout/Footer'; // 2. Importe o Footer
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { Box } from '@mui/material';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,14 +21,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      {/* 1. Adicione um fundo cinza claro ao body */}
+      <body className={`${inter.className} bg-gray-50`}>
         <ThemeRegistry>
-          {/* 3. Estruture a página para o footer ficar no final */}
           <Box className="flex flex-col min-h-screen">
             <Header />
-            {/* O conteúdo principal da página (children) */}
+            {/* 2. O main deve crescer para ocupar o espaço */}
             <Box component="main" className="flex-grow">
-              {children}
+              {/* 3. ESTE É O CONTAINER QUE CENTRALIZA TUDO */}
+              <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                {children}
+              </div>
             </Box>
             <Footer />
           </Box>

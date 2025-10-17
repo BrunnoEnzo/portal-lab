@@ -79,7 +79,17 @@ export function AddArticleDialog({ open, onClose, onArticleAdded }: AddArticleDi
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="sm" 
+      PaperProps={{
+        sx: {
+          bgcolor: 'background.paper',
+        },
+      }}
+    >
       <DialogTitle>Adicionar Novo Artigo</DialogTitle>
       <form onSubmit={handleCreateArticle}>
         <DialogContent className="flex flex-col gap-4">

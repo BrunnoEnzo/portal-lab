@@ -56,7 +56,17 @@ export function AddTutorialDialog({ open, onClose }: AddTutorialDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="sm" 
+      PaperProps={{
+        sx: {
+          bgcolor: 'background.paper',
+        },
+      }}
+    >
       <DialogTitle>Adicionar Novo Tutorial</DialogTitle>
       <form onSubmit={handleCreateTutorial}>
         <DialogContent>

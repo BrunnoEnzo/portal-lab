@@ -30,30 +30,21 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
     const courseData = {
       name: formData.get('name') as string,
       summary: formData.get('summary') as string,
-      description: formData.get('description') as string,
     };
 
     // Validação simples
-    if (!courseData.name || !courseData.summary || !courseData.description) {
+    if (!courseData.name || !courseData.summary) {
       setError('Por favor, preencha todos os campos.');
       setIsCreating(false);
       return;
     }
 
     try {
-      // --- LÓGICA DE API ---
-      // Aqui você fará a chamada para a sua API para criar o curso
-      // Exemplo: const response = await api.post('/courses', courseData);
-      // Por enquanto, vamos simular uma chamada e obter um ID de volta
       console.log('Criando curso com os dados:', courseData);
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simula delay da rede
-      const newCourseId = 'curso-criado-' + Date.now(); // ID de exemplo
-      // --- FIM DA LÓGICA DE API ---
+      await new Promise((resolve) => setTimeout(resolve, 1500)); 
+      const newCourseId = 'curso-criado-' + Date.now(); 
 
-      // Fecha o dialog
       onClose();
-
-      // Redireciona para a página de edição do novo curso
       router.push(`/professor/manage-courses/${newCourseId}`);
     } catch (err) {
       console.error('Falha ao criar curso:', err);
@@ -63,7 +54,18 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="sm"
+      // CORREÇÃO APLICADA AQUI
+      PaperProps={{
+        sx: {
+          bgcolor: 'background.paper',
+        },
+      }}
+    >
       <DialogTitle>Adicionar Novo Curso</DialogTitle>
       <form onSubmit={handleCreateCourse}>
         <DialogContent>
@@ -86,18 +88,6 @@ export function AddCourseDialog({ open, onClose }: AddCourseDialogProps) {
             label="Resumo / Breve Descrição"
             type="text"
             fullWidth
-            variant="outlined"
-          />
-          <TextField
-            required
-            margin="dense"
-            id="description"
-            name="description"
-            label="Descrição Completa"
-            type="text"
-            fullWidth
-            multiline
-            rows={4}
             variant="outlined"
           />
           {error && (
