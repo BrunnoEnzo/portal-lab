@@ -26,10 +26,26 @@ export class TutorialsController {
   constructor(private readonly tutorialsService: TutorialsService) {}
 
   @Post()
-  // REMOVIDO: Lógica de upload de arquivo
-  create(@Body() createTutorialDto: CreateTutorialDto, @Req() req: any) {
-    // Apenas o DTO e o ID do usuário são passados
-    return this.tutorialsService.create(createTutorialDto, req.user.id);
+  @UseInterceptors(FileInterceptor('coverPhoto'))
+  create(
+    @Body() createTutorialDto: CreateTutorialDto,
+    @Req() req: any,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB
+          new FileTypeValidator({ fileType: 'image' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    coverPhoto?: Express.Multer.File,
+  ) {
+    return this.tutorialsService.create(
+      createTutorialDto,
+      req.user.id,
+      coverPhoto,
+    );
   }
 
   @Get()
@@ -43,7 +59,7 @@ export class TutorialsController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('coverPhoto')) // ADICIONADO: Lógica de upload de arquivo
+  @UseInterceptors(FileInterceptor('coverPhoto'))
   update(
     @Param('id') id: string,
     @Body() updateTutorialDto: UpdateTutorialDto,

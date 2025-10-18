@@ -11,13 +11,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class TutorialsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTutorialDto: CreateTutorialDto, userId: string) {
-    // Simplificado: Sem parâmetro 'coverPhoto'
+  async create(
+    createTutorialDto: CreateTutorialDto,
+    userId: string,
+    coverPhoto?: Express.Multer.File,
+  ) {
     try {
       const tutorial = await this.prisma.tutorial.create({
         data: {
           ...createTutorialDto,
-          // Campos opcionais (content, youtubeUrl, coverPhotoPath) não são definidos aqui
+          coverPhotoPath: coverPhoto?.path,
           professor: {
             connect: {
               id: userId,
@@ -51,7 +54,6 @@ export class TutorialsService {
     updateTutorialDto: UpdateTutorialDto,
     coverPhoto?: Express.Multer.File,
   ) {
-    // Adicionado parâmetro 'coverPhoto'
     const data: any = { ...updateTutorialDto };
 
     if (coverPhoto) {

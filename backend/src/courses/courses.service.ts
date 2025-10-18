@@ -11,13 +11,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class CoursesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createCourseDto: CreateCourseDto, userId: string) {
-    // Simplificado: Sem parâmetro 'coverPhoto'
+  async create(
+    createCourseDto: CreateCourseDto,
+    userId: string,
+    coverPhoto?: Express.Multer.File,
+  ) {
     try {
       const course = await this.prisma.course.create({
         data: {
           ...createCourseDto,
-          // Campos opcionais (description, coverPhotoPath) não são definidos aqui
+          coverPhotoPath: coverPhoto?.path,
           professor: {
             connect: {
               id: userId,
@@ -51,7 +54,6 @@ export class CoursesService {
     updateCourseDto: UpdateCourseDto,
     coverPhoto?: Express.Multer.File,
   ) {
-    // Adicionado parâmetro 'coverPhoto'
     const data: any = { ...updateCourseDto };
 
     if (coverPhoto) {

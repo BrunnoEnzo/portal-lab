@@ -26,10 +26,22 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  // REMOVIDO: Lógica de upload de arquivo
-  create(@Body() createCourseDto: CreateCourseDto, @Req() req: any) {
-    // Apenas o DTO e o ID do usuário são passados
-    return this.coursesService.create(createCourseDto, req.user.id);
+  @UseInterceptors(FileInterceptor('coverPhoto'))
+  create(
+    @Body() createCourseDto: CreateCourseDto,
+    @Req() req: any,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB
+          new FileTypeValidator({ fileType: 'image' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    coverPhoto?: Express.Multer.File,
+  ) {
+    return this.coursesService.create(createCourseDto, req.user.id, coverPhoto);
   }
 
   @Get()
@@ -43,7 +55,7 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('coverPhoto')) // ADICIONADO: Lógica de upload de arquivo
+  @UseInterceptors(FileInterceptor('coverPhoto'))
   update(
     @Param('id') id: string,
     @Body() updateCourseDto: UpdateCourseDto,
@@ -53,7 +65,7 @@ export class CoursesController {
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB
           new FileTypeValidator({ fileType: 'image' }),
         ],
-        fileIsRequired: false, // Opcional, para permitir atualização de outros dados sem nova imagem
+        fileIsRequired: false,
       }),
     )
     coverPhoto: Express.Multer.File,
