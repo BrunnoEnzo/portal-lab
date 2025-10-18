@@ -1,55 +1,55 @@
 // frontend/src/components/features/professor/CourseCard.tsx
-'use client';
-
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Card from '@mui/material/Card';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
-import CardActionArea from '@mui/material/CardActionArea';
+import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
 
-interface CourseCardProps {
+// Definindo a interface para as props do componente
+interface Course {
   id: string;
   name: string;
-  // A imagem de capa é opcional
-  coverImage?: string;
+  summary: string | null;
+  coverPhotoPath: string | null;
 }
 
-// Uma imagem placeholder caso o curso não tenha uma capa definida
-const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x170.png?text=Sem+Capa';
+interface CourseCardProps {
+  course: Course;
+}
 
-export function CourseCard({ id, name, coverImage }: CourseCardProps) {
-  const router = useRouter();
-
-  const handleCardClick = () => {
-    // Navega para a página de edição do curso específico
-    router.push(`/professor/manage-courses/${id}`);
-  };
+// Aplicando a interface ao componente
+export function CourseCard({ course }: CourseCardProps) {
+  const imageUrl = course.coverPhotoPath
+    ? `${process.env.NEXT_PUBLIC_API_URL}${course.coverPhotoPath}`
+    : '/placeholder-image.png'; // Uma imagem padrão caso não haja foto
 
   return (
-    <Card
-      className="transition-transform hover:scale-105 hover:shadow-xl"
-      elevation={4}
-    >
-      <CardActionArea onClick={handleCardClick}>
-        <CardMedia
-          component="img"
-          height="170"
-          image={coverImage || PLACEHOLDER_IMAGE}
-          alt={`Capa do curso ${name}`}
-          className="bg-gray-200"
-        />
-        <CardContent>
-          <Typography
-            gutterBottom
-            variant="h6"
-            component="div"
-            className="truncate font-semibold"
-          >
-            {name}
-          </Typography>
-        </CardContent>
-      </CardActionArea>
+    <Card sx={{ maxWidth: 345, m: 2 }}>
+      <CardMedia
+        component="img"
+        height="140"
+        image={imageUrl}
+        alt={`Capa do curso ${course.name}`}
+      />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div">
+          {course.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {course.summary || 'Este curso não possui um resumo.'}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          size="small"
+          component={Link}
+          href={`/professor/manage-courses/${course.id}`}
+        >
+          Gerenciar
+        </Button>
+      </CardActions>
     </Card>
   );
 }

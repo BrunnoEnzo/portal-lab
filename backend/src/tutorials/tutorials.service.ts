@@ -1,11 +1,13 @@
+// backend/src/tutorials/tutorials.service.ts
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TutorialsService {
@@ -13,38 +15,32 @@ export class TutorialsService {
 
   async create(
     createTutorialDto: CreateTutorialDto,
-    userId: string,
-    coverPhoto?: Express.Multer.File,
+    professor: User,
+    coverPhotoPath: string | null,
   ) {
-    try {
-      const tutorial = await this.prisma.tutorial.create({
-        data: {
-          ...createTutorialDto,
-          coverPhotoPath: coverPhoto?.path,
-          professor: {
-            connect: {
-              id: userId,
-            },
-          },
-        },
-      });
-      return tutorial;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Aconteceu um erro ao criar o tutorial',
-        error.message,
+    if (professor.role !== 'PROFESSOR') {
+      throw new UnauthorizedException(
+        'Apenas professores podem criar tutoriais.',
       );
     }
+
+    return this.prisma.tutorial.create({
+      data: {
+        ...createTutorialDto,
+        coverPhotoPath,
+        professorId: professor.id,
+      },
+    });
   }
 
-  findAll() {
-    return this.prisma.tutorial.findMany();
+  async findAllByProfessor(professorId: string) {
+    return this.prisma.tutorial.findMany({ where: { professorId } });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, professorId: string) {
     const tutorial = await this.prisma.tutorial.findUnique({ where: { id } });
-    if (!tutorial) {
-      throw new NotFoundException(`Tutorial com ID ${id} não encontrado`);
+    if (!tutorial || tutorial.professorId !== professorId) {
+      throw new NotFoundException(`Tutorial com ID "${id}" não encontrado.`);
     }
     return tutorial;
   }
@@ -52,21 +48,21 @@ export class TutorialsService {
   async update(
     id: string,
     updateTutorialDto: UpdateTutorialDto,
-    coverPhoto?: Express.Multer.File,
+    professorId: string,
+    coverPhotoPath?: string,
   ) {
-    const data: any = { ...updateTutorialDto };
-
-    if (coverPhoto) {
-      data.coverPhotoPath = coverPhoto.path;
-    }
-
+    await this.findOne(id, professorId);
     return this.prisma.tutorial.update({
       where: { id },
-      data,
+      data: {
+        ...updateTutorialDto,
+        ...(coverPhotoPath && { coverPhotoPath }),
+      },
     });
   }
 
-  remove(id: string) {
+  async remove(id: string, professorId: string) {
+    await this.findOne(id, professorId);
     return this.prisma.tutorial.delete({ where: { id } });
   }
 }

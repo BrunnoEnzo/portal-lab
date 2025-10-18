@@ -1,70 +1,87 @@
 // frontend/src/app/(main)/professor/manage-courses/page.tsx
 'use client';
 
-import { useState } from 'react';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { Add } from '@mui/icons-material';
-
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CourseCard } from '@/components/features/professor/CourseCard';
 import { AddCourseDialog } from '@/components/features/professor/AddCourseDialog';
+import api from '@/lib/api';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
-// Dados de exemplo que viriam da sua API
-const MOCK_COURSES = [
-  { id: '1', name: 'Curso de React com Next.js', coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee' },
-  { id: '2', name: 'Dominando Node.js e Prisma' },
-  { id: '3', name: 'Introdução ao Docker', coverImage: 'https://images.unsplash.com/photo-1617546492386-a324b335551c' },
-  { id: '4', name: 'Testes unitários com Jest' }
-];
+interface Course {
+  id: string;
+  name: string;
+  summary: string | null;
+  coverPhotoPath: string | null;
+}
 
 export default function ManageCoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  
-  // No futuro, aqui você fará a chamada à API para buscar os cursos
-  const courses = MOCK_COURSES;
+  const router = useRouter();
+
+  const fetchCourses = async () => {
+    try {
+      const response = await api.get('/courses');
+      setCourses(response.data);
+    } catch (error) {
+      console.error('Failed to fetch courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
 
+  // Esta função será chamada quando um curso for adicionado
+  const handleCourseAdded = () => {
+    fetchCourses(); // Recarrega a lista de cursos
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <>
-      <div className="flex items-center justify-between mb-8">
-        <Typography variant="h4" component="h1" className="font-bold">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+        <Typography variant="h4" component="h1">
           Gerenciar Cursos
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleOpenDialog}
-        >
+        <Button variant="contained" onClick={handleOpenDialog}>
           Adicionar Curso
         </Button>
+      </Box>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {courses.map((course) => (
+          <CourseCard key={course.id} course={course} />
+        ))}
       </div>
-
-      {courses.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              id={course.id}
-              name={course.name}
-              coverImage={course.coverImage}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-10 border-2 border-dashed rounded-lg">
-          <Typography variant="h6" color="text.secondary">
-            Nenhum curso encontrado.
-          </Typography>
-          <Typography color="text.secondary">
-            {/* CORREÇÃO APLICADA AQUI */}
-            {`Clique em 'Adicionar Curso' para começar.`}
-          </Typography>
-        </div>
-      )}
-
-      <AddCourseDialog open={dialogOpen} onClose={handleCloseDialog} />
+      <AddCourseDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        onCourseAdded={handleCourseAdded} // <- Prop adicionada aqui
+      />
     </>
   );
 }

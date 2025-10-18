@@ -1,53 +1,55 @@
 // frontend/src/components/features/professor/TutorialCard.tsx
-'use client';
-
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Card from '@mui/material/Card';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
-import CardActionArea from '@mui/material/CardActionArea';
+import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
 
-interface TutorialCardProps {
+// Definindo a interface para as props
+interface Tutorial {
   id: string;
-  name: string;
-  coverImage?: string;
+  title: string;
+  content: string | null;
+  coverPhotoPath: string | null;
 }
 
-const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x170.png?text=Sem+Capa';
+interface TutorialCardProps {
+  tutorial: Tutorial;
+}
 
-export function TutorialCard({ id, name, coverImage }: TutorialCardProps) {
-  const router = useRouter();
-
-  const handleCardClick = () => {
-    // Navega para a página de edição do tutorial
-    router.push(`/professor/manage-tutorials/${id}`);
-  };
+// Aplicando a interface ao componente
+export function TutorialCard({ tutorial }: TutorialCardProps) {
+  const imageUrl = tutorial.coverPhotoPath
+    ? `${process.env.NEXT_PUBLIC_API_URL}${tutorial.coverPhotoPath}`
+    : '/placeholder-image.png'; // Imagem padrão
 
   return (
-    <Card
-      className="transition-transform hover:scale-105 hover:shadow-xl"
-      elevation={4}
-    >
-      <CardActionArea onClick={handleCardClick}>
-        <CardMedia
-          component="img"
-          height="170"
-          image={coverImage || PLACEHOLDER_IMAGE}
-          alt={`Capa do tutorial ${name}`}
-          className="bg-gray-200"
-        />
-        <CardContent>
-          <Typography
-            gutterBottom
-            variant="h6"
-            component="div"
-            className="truncate font-semibold"
-          >
-            {name}
-          </Typography>
-        </CardContent>
-      </CardActionArea>
+    <Card sx={{ maxWidth: 345, m: 2 }}>
+      <CardMedia
+        component="img"
+        height="140"
+        image={imageUrl}
+        alt={`Capa do tutorial ${tutorial.title}`}
+      />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div">
+          {tutorial.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {tutorial.content || 'Este tutorial não possui um resumo.'}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          size="small"
+          component={Link}
+          href={`/professor/manage-tutorials/${tutorial.id}`}
+        >
+          Gerenciar
+        </Button>
+      </CardActions>
     </Card>
   );
 }

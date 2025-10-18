@@ -1,11 +1,13 @@
+// backend/src/courses/courses.service.ts
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CoursesService {
@@ -13,38 +15,30 @@ export class CoursesService {
 
   async create(
     createCourseDto: CreateCourseDto,
-    userId: string,
-    coverPhoto?: Express.Multer.File,
+    professor: User,
+    coverPhotoPath: string | null,
   ) {
-    try {
-      const course = await this.prisma.course.create({
-        data: {
-          ...createCourseDto,
-          coverPhotoPath: coverPhoto?.path,
-          professor: {
-            connect: {
-              id: userId,
-            },
-          },
-        },
-      });
-      return course;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Aconteceu um erro ao criar o curso',
-        error.message,
-      );
+    if (professor.role !== 'PROFESSOR') {
+      throw new UnauthorizedException('Apenas professores podem criar cursos.');
     }
+
+    return this.prisma.course.create({
+      data: {
+        ...createCourseDto,
+        coverPhotoPath,
+        professorId: professor.id,
+      },
+    });
   }
 
-  findAll() {
-    return this.prisma.course.findMany();
+  async findAllByProfessor(professorId: string) {
+    return this.prisma.course.findMany({ where: { professorId } });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, professorId: string) {
     const course = await this.prisma.course.findUnique({ where: { id } });
-    if (!course) {
-      throw new NotFoundException(`Curso com ID ${id} não encontrado`);
+    if (!course || course.professorId !== professorId) {
+      throw new NotFoundException(`Curso com ID "${id}" não encontrado.`);
     }
     return course;
   }
@@ -52,21 +46,21 @@ export class CoursesService {
   async update(
     id: string,
     updateCourseDto: UpdateCourseDto,
-    coverPhoto?: Express.Multer.File,
+    professorId: string,
+    coverPhotoPath?: string,
   ) {
-    const data: any = { ...updateCourseDto };
-
-    if (coverPhoto) {
-      data.coverPhotoPath = coverPhoto.path;
-    }
-
+    await this.findOne(id, professorId);
     return this.prisma.course.update({
       where: { id },
-      data,
+      data: {
+        ...updateCourseDto,
+        ...(coverPhotoPath && { coverPhotoPath }),
+      },
     });
   }
 
-  remove(id: string) {
+  async remove(id: string, professorId: string) {
+    await this.findOne(id, professorId);
     return this.prisma.course.delete({ where: { id } });
   }
 }
