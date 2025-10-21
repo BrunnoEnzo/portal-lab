@@ -1,0 +1,8 @@
+# Ignora dependências locais e builds antigos
+/node_modules
+/dist
+
+# Ignora arquivos de ambiente e logs
+.env
+npm-debug.log*
+*.log

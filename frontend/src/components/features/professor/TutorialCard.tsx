@@ -1,51 +1,52 @@
-// frontend/src/components/features/professor/TutorialCard.tsx
-import Link from 'next/link';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Typography from '@mui/material/Typography';
-import CardActions from '@mui/material/CardActions';
-import Button from '@mui/material/Button';
+'use client';
 
-// Definindo a interface para as props
-interface Tutorial {
-  id: string;
-  title: string;
-  content: string | null;
-  coverPhotoPath: string | null;
-}
+import Link from 'next/link';
+import Image from 'next/image';
+import { Tutorial } from '@prisma/client'; // Importando o tipo real
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import { Box } from '@mui/material';
 
 interface TutorialCardProps {
   tutorial: Tutorial;
 }
 
-// Aplicando a interface ao componente
 export function TutorialCard({ tutorial }: TutorialCardProps) {
+  // LÓGICA DA IMAGEM: Se não houver coverPhotoPath, usa /semCapa.png
   const imageUrl = tutorial.coverPhotoPath
     ? `${process.env.NEXT_PUBLIC_API_URL}${tutorial.coverPhotoPath}`
-    : '/placeholder-image.png'; // Imagem padrão
+    : '/semCapa.png';
 
   return (
-    <Card sx={{ maxWidth: 345, m: 2 }}>
-      <CardMedia
-        component="img"
-        height="140"
-        image={imageUrl}
-        alt={`Capa do tutorial ${tutorial.title}`}
-      />
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
-          {tutorial.title}
+    <Card
+      component="article"
+      className="flex h-full flex-col overflow-hidden rounded-lg shadow-lg transition-shadow duration-300 hover:shadow-xl"
+    >
+      <Box className="relative h-48 w-full">
+        <Image
+          src={imageUrl}
+          alt={`Capa do tutorial ${tutorial.name}`}
+          layout="fill"
+          objectFit="cover"
+        />
+      </Box>
+      <CardContent className="flex-grow">
+        <Typography gutterBottom variant="h5" component="h2">
+          {tutorial.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {tutorial.content || 'Este tutorial não possui um resumo.'}
+        <Typography variant="body2" color="text.secondary" className="line-clamp-3">
+          {tutorial.summary}
         </Typography>
       </CardContent>
-      <CardActions>
+      <CardActions className="border-t p-4">
         <Button
-          size="small"
           component={Link}
           href={`/professor/manage-tutorials/${tutorial.id}`}
+          size="small"
+          variant="contained"
         >
           Gerenciar
         </Button>

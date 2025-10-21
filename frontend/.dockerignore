@@ -1,0 +1,15 @@
+# frontend/.dockerignore
+
+# Ignora todas as dependências...
+node_modules
+
+# ...EXCETO a pasta do cliente Prisma que geramos!
+# Isso é o que resolve o erro "Cannot find module '@prisma/client'"
+!node_modules/@prisma/client
+
+# Ignora o build local
+.next
+
+# Ignora arquivos de ambiente
+.env
+.env.local

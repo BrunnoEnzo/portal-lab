@@ -1,7 +1,7 @@
-// frontend/src/app/(main)/professor/manage-tutorials/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Tutorial } from '@prisma/client';
 import { TutorialCard } from '@/components/features/professor/TutorialCard';
 import { AddTutorialDialog } from '@/components/features/professor/AddTutorialDialog';
 import api from '@/lib/api';
@@ -9,13 +9,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-
-interface Tutorial {
-  id: string;
-  title: string;
-  content: string | null;
-  coverPhotoPath: string | null;
-}
+import { Add } from '@mui/icons-material';
 
 export default function ManageTutorialsPage() {
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -23,6 +17,7 @@ export default function ManageTutorialsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchTutorials = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/tutorials');
       setTutorials(response.data);
@@ -41,43 +36,52 @@ export default function ManageTutorialsPage() {
   const handleCloseDialog = () => setDialogOpen(false);
 
   const handleTutorialAdded = () => {
-    fetchTutorials(); // Recarrega a lista
+    fetchTutorials();
   };
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-        <Typography variant="h4" component="h1">
+      <Box
+        component="header"
+        className="mb-6 flex items-center justify-between"
+      >
+        <Typography variant="h4" component="h1" className="font-semibold">
           Gerenciar Tutoriais
         </Typography>
-        <Button variant="contained" onClick={handleOpenDialog}>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={handleOpenDialog}
+        >
           Adicionar Tutorial
         </Button>
       </Box>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {tutorials.map((tutorial) => (
-          <TutorialCard key={tutorial.id} tutorial={tutorial} />
-        ))}
-      </div>
+
+      {loading && (
+        <Box className="flex h-64 items-center justify-center">
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!loading && tutorials.length === 0 && (
+        <Typography variant="body1" className="text-center text-gray-500">
+          Nenhum tutorial encontrado. Clique em &quot;Adicionar Tutorial&quot;
+          para começar.
+        </Typography>
+      )}
+
+      {!loading && tutorials.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {tutorials.map((tutorial) => (
+            <TutorialCard key={tutorial.id} tutorial={tutorial} />
+          ))}
+        </div>
+      )}
+
       <AddTutorialDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        onTutorialAdded={handleTutorialAdded} // <- Prop adicionada aqui
+        onTutorialAdded={handleTutorialAdded}
       />
     </>
   );

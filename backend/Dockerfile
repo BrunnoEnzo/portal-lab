@@ -14,7 +14,7 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-COPY prisma ./prisma
+COPY --from=builder /usr/src/app/prisma ./prisma
 RUN npm install --omit=dev
 RUN npx prisma generate
 

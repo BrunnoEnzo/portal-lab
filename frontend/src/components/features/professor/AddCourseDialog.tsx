@@ -10,26 +10,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import CircularProgress from '@mui/material/CircularProgress';
-import { styled } from '@mui/material/styles';
-import { CloudUpload } from '@mui/icons-material';
+// Removidos 'styled' e 'CloudUpload' pois não são mais usados
 import api from '@/lib/api';
 
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
-});
+// Removido 'VisuallyHiddenInput' pois não é mais usado
 
 interface AddCourseDialogProps {
   open: boolean;
   onClose: () => void;
-  // Adicionei onCourseAdded para um melhor feedback, similar ao onArticleAdded
   onCourseAdded: () => void;
 }
 
@@ -41,12 +29,9 @@ export function AddCourseDialog({
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
-  const [fileName, setFileName] = useState('');
+  // Removido o estado 'fileName'
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    setFileName(file ? file.name : '');
-  };
+  // Removida a função 'handleFileChange'
 
   const handleCreateCourse = async (
     event: React.FormEvent<HTMLFormElement>,
@@ -64,6 +49,8 @@ export function AddCourseDialog({
     }
 
     try {
+      // O FormData agora só contém 'name' e 'summary'
+      // O backend irá tratar a 'coverPhoto' ausente como 'null'
       const response = await api.post('/courses', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -108,22 +95,9 @@ export function AddCourseDialog({
             fullWidth
             variant="outlined"
           />
-          <Button
-            component="label"
-            role={undefined}
-            variant="outlined"
-            tabIndex={-1}
-            startIcon={<CloudUpload />}
-          >
-            Foto de Capa
-            <VisuallyHiddenInput
-              type="file"
-              name="coverPhoto"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-          </Button>
-          {fileName && <p className="mt-1 text-sm text-gray-600">{fileName}</p>}
+          {/* O botão de upload de foto de capa foi removido daqui.
+          */}
+          {/* Removida a exibição do 'fileName' */}
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </DialogContent>
         <DialogActions sx={{ p: '1rem' }}>
